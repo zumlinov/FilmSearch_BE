@@ -34,7 +34,7 @@ namespace FilmSearch_BE.Controllers
         /// <response code="200">Full dta was found</response>
         /// <response code="400">Wrong parameters were sent</response>
         /// <response code="500">Something went wrong</response>
-        [HttpGet("fullFilmData/{imdbId}")]
+        [HttpGet("/fullFilmData/{imdbId}")]
         [ProducesResponseType(typeof(FilmFullData), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
