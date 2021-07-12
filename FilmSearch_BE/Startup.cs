@@ -1,16 +1,16 @@
+using AutoMapper;
+using FilmSearch_BE.Binders;
+using FilmSearch_BE.Filters;
+using FilmSearchClasses.Extensions;
+using FilmSearchClasses.Mappers;
+using FilmSearchClasses.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 
 namespace FilmSearch_BE
 {
@@ -23,18 +23,38 @@ namespace FilmSearch_BE
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            var mapperConfig = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<FilmSearchMapperProfile>();
+            });
 
-            services.AddControllers();
+            mapperConfig.AssertConfigurationIsValid();
+            services.AddTransient(x => mapperConfig.CreateMapper());
+
+            services.Configure<OpenMovieDtabaseSettings>(Configuration.GetSection(OpenMovieDtabaseSettings.SectionName));
+
+            services.AddFilmSearchService();
+            services.AddHttpClient();
+
+            services.AddMvc(opt => opt.Filters.Add<AsyncExceptionFilter>());
+            services.AddControllers()
+                .AddJsonOptions(opt =>
+                {
+                    opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                })
+                .AddMvcOptions(opt =>
+                {
+                    opt.ModelBinderProviders.Insert(0, new FilmSearchCriteriaModelBinderProvider());
+                });
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "FilmSearch_BE", Version = "v1" });
             });
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
