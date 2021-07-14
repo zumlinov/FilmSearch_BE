@@ -19,6 +19,8 @@ namespace FilmSearch_BE
 {
     public class Startup
     {
+        //private const string AllowedOrigins = "_allowedOrigins";
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -28,6 +30,16 @@ namespace FilmSearch_BE
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                                  {
+                                      builder.WithOrigins("http://localhost:4200")
+                                      .AllowAnyHeader()
+                                      .AllowAnyMethod();
+                                  });
+            });
+
             var mapperConfig = new MapperConfiguration(cfg =>
             {
                 cfg.AddProfile<FilmSearchMapperProfile>();
@@ -74,6 +86,8 @@ namespace FilmSearch_BE
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors();
 
             app.UseAuthorization();
 

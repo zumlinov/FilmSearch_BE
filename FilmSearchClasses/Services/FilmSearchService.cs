@@ -71,7 +71,7 @@ namespace FilmSearchClasses.Services
                     ErrorMessage = "Search params list can't be null",
                     StatusCode = System.Net.HttpStatusCode.BadRequest,
                     Result = null
-                }; ;
+                };
 
             var preparedSearchParams = SearchParamConverter.PrepareSearchParams(searchParams);
             preparedSearchParams.Add("page", page.ToString());
@@ -94,6 +94,7 @@ namespace FilmSearchClasses.Services
             var searchResult = _mapper.Map<SearchResult>(omdb_searchResult);
             searchResult.CurrentPage = page;
             searchResult.PagesCount = omdb_searchResult.TotalResults / FilmsPerPage + 1;
+            searchResult.Films = searchResult.Films.OrderByDescending(f => f.Year).ToArray();
 
             return new ServiceResponse<SearchResult>
             {
