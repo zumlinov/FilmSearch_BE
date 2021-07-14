@@ -19,9 +19,9 @@ namespace FilmSearch_BE.Filters
         {
             _logger.LogCritical(context.Exception, "This exception was handled by exception filter");
 
-            context.Result = new ObjectResult("Admindistrator is waking up...") 
-            { 
-                StatusCode = (int)HttpStatusCode.InternalServerError 
+            context.Result = new ObjectResult($"Admindistrator is waking up...\n\n{context.Exception.Message}")
+            {
+                StatusCode = (int)HttpStatusCode.InternalServerError
             };
 
             return Task.CompletedTask;
