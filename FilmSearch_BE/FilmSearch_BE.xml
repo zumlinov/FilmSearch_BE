@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>FilmSearch_BE</name>
+    </assembly>
+    <members>
+        <member name="M:FilmSearch_BE.Controllers.FilmSearchController.FullFilmData(System.String)">
+            <summary>
+            Get full film data by imdb id
+            </summary>
+            <remarks>
+            </remarks>
+            <param name="fullFilmData"></param>
+            <returns>Returns full film data or an error</returns>
+            <response code="200">Full dta was found</response>
+            <response code="400">Wrong parameters were sent</response>
+            <response code="500">Something went wrong</response>
+        </member>
+        <member name="M:FilmSearch_BE.Controllers.FilmSearchController.Search(FilmSearchClasses.Dtos.SearchParams.SearchParam[],System.Nullable{System.Int32})">
+            <summary>
+            Search for films short data by params
+            </summary>
+            <remarks>
+            </remarks>
+            <param name="search"></param>
+            <returns>Returns films search result or an error</returns>
+            <response code="200">Search was done successfully</response>
+            <response code="400">Wrong parameters were sent</response>
+            <response code="500">Something went wrong</response>
+        </member>
+    </members>
+</doc>

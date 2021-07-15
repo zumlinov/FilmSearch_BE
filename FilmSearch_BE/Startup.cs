@@ -1,21 +1,26 @@
+using AutoMapper;
+using FilmSearch_BE.Binders;
+using FilmSearch_BE.Filters;
+using FilmSearchClasses.Extensions;
+using FilmSearchClasses.Mappers;
+using FilmSearchClasses.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.IO;
+using System.Reflection;
+using System.Text.Json.Serialization;
 
 namespace FilmSearch_BE
 {
     public class Startup
     {
+        //private const string AllowedOrigins = "_allowedOrigins";
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -23,18 +28,52 @@ namespace FilmSearch_BE
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(builder =>
+                                  {
+                                      builder.WithOrigins("http://localhost:4200")
+                                      .AllowAnyHeader()
+                                      .AllowAnyMethod();
+                                  });
+            });
 
-            services.AddControllers();
+            var mapperConfig = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<FilmSearchMapperProfile>();
+            });
+
+            mapperConfig.AssertConfigurationIsValid();
+            services.AddTransient(x => mapperConfig.CreateMapper());
+
+            services.Configure<OpenMovieDtabaseSettings>(Configuration.GetSection(OpenMovieDtabaseSettings.SectionName));
+
+            services.AddFilmSearchService();
+            services.AddHttpClient();
+
+            services.AddMvc(opt => opt.Filters.Add<AsyncExceptionFilter>());
+            services.AddControllers()
+                .AddJsonOptions(opt =>
+                {
+                    opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                })
+                .AddMvcOptions(opt =>
+                {
+                    opt.ModelBinderProviders.Insert(0, new FilmSearchCriteriaModelBinderProvider());
+                });
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "FilmSearch_BE", Version = "v1" });
+
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
             });
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -47,6 +86,8 @@ namespace FilmSearch_BE
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors();
 
             app.UseAuthorization();
 
